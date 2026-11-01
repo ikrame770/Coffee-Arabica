@@ -10,7 +10,10 @@ function Login({ setIsAdmin }) {
   const handleLogin = (e) => {
     e.preventDefault();
     
-    if (username === 'admin' && password === 'admin123') {
+    const ADMIN_USERNAME = process.env.REACT_APP_ADMIN_USERNAME;
+    const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
+
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
       localStorage.setItem('adminAuth', 'true');
       setIsAdmin(true);
       navigate('/admin');
