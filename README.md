@@ -157,6 +157,12 @@ npm test -- --watchAll=false src/pages/Menu.test.js
 | `frontend/src/setupTests.js` | Global test setup, loaded before every test file |
 | `frontend/src/testUtils.js` | Helpers to mock the backend API (`mockFetch`) and read the data sent to it (`sentBodies`) |
 | `frontend/src/pages/Menu.test.js` | Cart and checkout flow: product list, category filters, cart quantities and total, order submission |
+| `frontend/src/pages/Orders.test.js` | Order management: order list, status and payment updates, order detail popup |
+| `frontend/src/pages/Admin.test.js` | Product administration: product table, add, edit and delete products, save errors |
+| `frontend/src/pages/AdminDashboard.test.js` | Dashboard: login redirect, revenue and order stats, last 7 days and top 5 products, 30-second refresh |
+| `frontend/src/App.test.js` | Routing: admin pages redirect to the login page when not logged in, navbar links for visitors and admins |
+
+> **Note:** `react-router-dom` v7 cannot be loaded by the Jest version bundled with Create React App, so `frontend/package.json` contains a `jest.moduleNameMapper` entry that points Jest to the right files. Do not remove it.
 
 ### Writing a New Test
 

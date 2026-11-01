@@ -10,10 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Frontend Jest tests for the cart and checkout flow (`frontend/src/pages/Menu.test.js`): product loading, category filters, cart quantities and total, and order submission.
 - Test helper `frontend/src/testUtils.js` that mocks the backend API (`fetch`) in tests.
+- Frontend Jest tests for the order status and admin screens: `Orders.test.js` (status and payment updates, order details), `Admin.test.js` (add, edit and delete products), `AdminDashboard.test.js` (stats, charts data, auto-refresh) and `App.test.js` (protected admin routes).
 
 ### Changed
 
 - `frontend/src/setupTests.js` now adds a `TextEncoder`/`TextDecoder` polyfill required by React Router v7 under Jest.
+- `frontend/package.json` maps `react-router-dom` and `react-router/dom` for Jest (`jest.moduleNameMapper`), because the bundled Jest 27 cannot resolve React Router v7's package entry points.
 
 ## 2026-11-01
 
