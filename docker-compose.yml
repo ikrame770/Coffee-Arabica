@@ -1,0 +1,65 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: coffee-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-coffee-db}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Configure DB_ROOT_PASSWORD dans .env}
+      MYSQL_USER: ${DB_USERNAME:-coffee_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD dans .env}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - coffee-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coffee-backend
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8081
+      DB_URL: jdbc:mysql://db:3306/${DB_NAME:-coffee_db}?createDatabaseIfNotExist=true
+      DB_USERNAME: ${DB_USERNAME:-coffee_user}
+      DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD dans .env}
+    ports:
+      - "8081:8081"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - coffee-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8081}
+        REACT_APP_ADMIN_USERNAME: ${REACT_APP_ADMIN_USERNAME}
+        REACT_APP_ADMIN_PASSWORD: ${REACT_APP_ADMIN_PASSWORD}
+    container_name: coffee-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - coffee-network
+
+volumes:
+  mysql_data:
+
+networks:
+  coffee-network:
+    driver: bridge
