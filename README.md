@@ -192,3 +192,92 @@ test('adds a product to the cart', async () => {
 - `'/products/available': [...]` returns this JSON for a `GET` request.
 - `'POST /orders': { id: 1 }` returns this JSON for a `POST` request.
 - `{ ok: false }` simulates a server error.
+
+
+### Backend Tests
+
+The backend is tested with **JUnit 5**, **Spring Boot Test**, **MockMvc**, and an **H2 in-memory database**.
+
+The tests run against the actual Spring Boot application context. MockMvc sends HTTP requests to the REST controllers without starting a real HTTP server, while H2 provides an isolated test database instead of using the production MySQL database.
+
+This allows us to test the backend endpoints, database operations, business logic, and HTTP responses without requiring the frontend or a running MySQL instance.
+
+Run all backend tests once:
+
+```bash
+cd backend
+./mvnw test
+```
+
+On Windows PowerShell:
+
+```powershell
+cd backend
+.\mvnw.cmd test
+```
+
+Run a single test class:
+
+```bash
+./mvnw -Dtest=ProductControllerTest test
+```
+
+Run a specific test method:
+
+```bash
+./mvnw -Dtest=OrderControllerTest#shouldCreateOrderAndCalculateTotal test
+```
+
+**### Test Files**
+
+| File | Description |
+|------|-------------|
+| `backend/src/test/resources/application-test.properties` | Test configuration: uses an H2 in-memory database and creates/drops the database schema for each test context. |
+| `backend/src/test/java/com/example/coffee/controller/ProductControllerTest.java` | Product management: retrieve all products, filter available products and categories, retrieve by ID, create, update and delete products. |
+| `backend/src/test/java/com/example/coffee/controller/OrderControllerTest.java` | Order management: create orders, calculate totals, retrieve orders, filter by status, update status and payment, delete orders, and test overview and product statistics. |
+
+**### Writing a New Test**
+
+Backend test files are placed in `backend/src/test/java`, following the same package structure as the application. Test classes end with `Test.java`.
+
+A typical integration test follows three steps:
+
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class ProductControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void shouldReturnAllProducts() throws Exception {
+
+        // 1. Arrange: prepare the test data
+
+        // 2. Act: send an HTTP request to the endpoint
+        mockMvc.perform(get("/api/products"))
+
+            // 3. Assert: verify the HTTP response
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray());
+    }
+}
+```
+
+`@SpringBootTest` loads the Spring application context, `@AutoConfigureMockMvc` configures MockMvc to test HTTP endpoints, and `@ActiveProfiles("test")` activates the test configuration.
+
+`MockMvc` sends requests directly to the application without requiring a running frontend or external HTTP server.
+
+**### Test Database**
+
+The backend tests use **H2**, an in-memory relational database.
+
+The test configuration is defined in:
+
+`backend/src/test/resources/application-test.properties`
+
+Each test prepares its required data and cleans up existing orders before products to respect foreign-key constraints.
+
+**Note:** H2 is not identical to MySQL. Tests involving database-specific SQL functions, such as the daily and monthly sales queries using `DATE()`, are not currently included in the test suite. These features remain in the application source code but require a MySQL-compatible test environment to be tested reliably.

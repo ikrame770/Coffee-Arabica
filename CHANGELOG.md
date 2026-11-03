@@ -17,6 +17,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `frontend/src/setupTests.js` now adds a `TextEncoder`/`TextDecoder` polyfill required by React Router v7 under Jest.
 - `frontend/package.json` maps `react-router-dom` and `react-router/dom` for Jest (`jest.moduleNameMapper`), because the bundled Jest 27 cannot resolve React Router v7's package entry points.
 
+## [1.1.0] - 2026-11-02
+
+### Added
+- Ajout des tests d'intégration pour ProductController.
+- Ajout des tests d'intégration pour OrderController.
+- Ajout de la configuration H2 pour les tests.
+
+### Changed
+- Amélioration de la configuration des tests backend.
+
+### Fixed
+- Correction de problèmes liés à la configuration de l'environnement de test.
+
+
 ## 2026-11-01
 
 ### Added
@@ -35,3 +49,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Spring Boot backend with REST APIs for products (`/api/products`) and orders (`/api/orders`), including sales statistics endpoints.
 - React frontend with customer pages (Home, Menu, About) and admin pages (Login, Products, Orders, Dashboard).
 - README with project overview and technology stack.
+
