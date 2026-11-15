@@ -15,6 +15,14 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -25,6 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class OrderControllerTest {
 
     @Autowired
+    private WebApplicationContext context;
+
     private MockMvc mockMvc;
 
     @Autowired
@@ -44,6 +54,12 @@ class OrderControllerTest {
 
     @BeforeEach
     void setUp() {
+
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(SecurityMockMvcConfigurers.springSecurity())
+                .build();
+
         // Supprimer d'abord les commandes et leurs articles
         orderRepo.deleteAll();
 
@@ -91,45 +107,33 @@ class OrderControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(orderJson))
 
-                // ASSERT : vérifier la réponse HTTP
                 .andExpect(status().isOk())
-
-                // Vérifier les informations de la commande
                 .andExpect(jsonPath("$.customerName").value("Ahmed"))
-
-                // Espresso : 15 × 2 = 30
                 .andExpect(jsonPath("$.items[0].price").value(30.0))
-
-                // Tea : 10 × 3 = 30
                 .andExpect(jsonPath("$.items[1].price").value(30.0))
-
-                // Total : 30 + 30 = 60
                 .andExpect(jsonPath("$.total").value(60.0));
 
-        // Vérifier également l'enregistrement en base
-        org.junit.jupiter.api.Assertions.assertEquals(1, orderRepo.count());
+        assertEquals(1, orderRepo.count());
     }
 
     @Test
+    @WithMockUser(roles = "BARISTA")
     void shouldReturnAllOrders() throws Exception {
 
-        // ARRANGE
         createOrder("Ahmed", 60.0, "PENDING");
         createOrder("Sara", 100.0, "READY");
 
-        // ACT + ASSERT
         mockMvc.perform(get("/api/orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
+    @WithMockUser(roles = "BARISTA")
     void shouldReturnOrderById() throws Exception {
 
-        // ARRANGE
         Order order = createOrder("Ahmed", 60.0, "PENDING");
 
-        // ACT + ASSERT
         mockMvc.perform(get("/api/orders/" + order.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.customerName").value("Ahmed"))
@@ -137,14 +141,13 @@ class OrderControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "BARISTA")
     void shouldReturnOrdersByStatus() throws Exception {
 
-        // ARRANGE
         createOrder("Ahmed", 60.0, "PENDING");
         createOrder("Sara", 100.0, "READY");
         createOrder("Youssef", 80.0, "PENDING");
 
-        // ACT + ASSERT
         mockMvc.perform(get("/api/orders/status/PENDING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
@@ -152,6 +155,7 @@ class OrderControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "BARISTA")
     void shouldUpdateOrderStatus() throws Exception {
 
         Order order = createOrder("Ahmed", 60.0, "PENDING");
@@ -164,6 +168,7 @@ class OrderControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "BARISTA")
     void shouldUpdateOrderPayment() throws Exception {
 
         Order order = createOrder("Ahmed", 60.0, "PENDING");
@@ -182,6 +187,7 @@ class OrderControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldDeleteOrder() throws Exception {
 
         Order order = createOrder("Ahmed", 60.0, "PENDING");
@@ -189,21 +195,19 @@ class OrderControllerTest {
         mockMvc.perform(delete("/api/orders/" + order.getId()))
                 .andExpect(status().isOk());
 
-        org.junit.jupiter.api.Assertions.assertFalse(
-                orderRepo.existsById(order.getId()));
+        assertFalse(orderRepo.existsById(order.getId()));
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnOverviewStatistics() throws Exception {
 
-        // ARRANGE
         Order paidOrder = createOrder("Ahmed", 60.0, "PENDING");
         paidOrder.setPayment("PAID");
         orderRepo.save(paidOrder);
 
         createOrder("Sara", 100.0, "READY");
 
-        // ACT + ASSERT
         mockMvc.perform(get("/api/orders/stats/overview"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalOrders").value(2))
@@ -214,8 +218,8 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.monthRevenue").value(60.0));
     }
 
-
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnProductStatistics() throws Exception {
 
         // ARRANGE : créer les produits

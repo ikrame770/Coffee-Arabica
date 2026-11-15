@@ -11,7 +11,7 @@ The project follows a frontend/backend architecture. The frontend communicates w
 The application provides two main interfaces:
 
 - **Customer Interface:** Allows customers to browse the menu and place orders.
-- **Administrator Interface:** Allows administrators to manage products and customer orders.
+- **Administrator Interface:** Allows administrators to manage products, customer orders and application users.
 
 ## ✨ Main Features
 
@@ -33,6 +33,21 @@ The application provides two main interfaces:
 - Delete products.
 - View customer orders.
 - Update order statuses.
+- Manage application users.
+- View registered users.
+- Create new user accounts.
+- Update existing user information.
+- Delete user accounts.
+
+### 👥 User Management Features
+
+- Dedicated user management for administrators.
+- Retrieve all registered users.
+- Create, update and delete user accounts.
+- Support for ADMIN and BARISTA roles.
+- Role-based access control for user management operations.
+- Secure password storage using BCrypt password encoding.
+- Automatic initialization of the administrator account using environment variables.
 
 ### ⚙️ Technical Features
 
@@ -43,6 +58,11 @@ The application provides two main interfaces:
 - Environment-based configuration.
 - Cross-Origin Resource Sharing (CORS) configuration.
 - Responsive user interface.
+- Authentication and authorization using Spring Security.
+- HTTP Basic Authentication for protected backend endpoints.
+- Password encryption using BCrypt.
+- Role-based access control for ADMIN and BARISTA users.
+- Protected REST API endpoints.
 
 ## 🛠️ Technologies Used
 
@@ -104,7 +124,33 @@ Coffee-Arabica/
 
 **Backend:** Spring Boot exposes REST APIs, processes application requests and communicates with the MySQL database through Spring Data JPA.
 
-**Database:** MySQL stores product and order information.
+**Database:** MySQL stores user, product and order information.
+
+## 🔒 Security and Authorization
+
+The backend uses Spring Security to protect REST API endpoints and control access according to user roles.
+
+The application supports two roles:
+
+- **ADMIN:** Has access to user management, product management, order management and statistics.
+- **BARISTA:** Can manage products and access and update customer orders, but cannot manage users or delete orders.
+
+The main access rules are:
+
+| Resource                           | Access Permissions |
+| ---------------------------------- | ------------------ |
+| User Management (`/api/users/**`)  | ADMIN only         |
+| View Products                      | Public             |
+| Create, Update and Delete Products | ADMIN, BARISTA     |
+| Create Orders                      | Public             |
+| View Orders                        | ADMIN, BARISTA     |
+| Update Order Status and Payment    | ADMIN, BARISTA     |
+| Delete Orders                      | ADMIN only         |
+| View Order Statistics              | ADMIN only         |
+
+Passwords are encoded using BCrypt before being stored in the database.
+
+The administrator account is initialized using environment variables, avoiding hardcoded administrator credentials in the backend source code.
 
 ## ⚙️ Environment Configuration
 
@@ -152,15 +198,15 @@ npm test -- --watchAll=false src/pages/Menu.test.js
 
 ### Test Files
 
-| File | Description |
-|------|-------------|
-| `frontend/src/setupTests.js` | Global test setup, loaded before every test file |
-| `frontend/src/testUtils.js` | Helpers to mock the backend API (`mockFetch`) and read the data sent to it (`sentBodies`) |
-| `frontend/src/pages/Menu.test.js` | Cart and checkout flow: product list, category filters, cart quantities and total, order submission |
-| `frontend/src/pages/Orders.test.js` | Order management: order list, status and payment updates, order detail popup |
-| `frontend/src/pages/Admin.test.js` | Product administration: product table, add, edit and delete products, save errors |
-| `frontend/src/pages/AdminDashboard.test.js` | Dashboard: login redirect, revenue and order stats, last 7 days and top 5 products, 30-second refresh |
-| `frontend/src/App.test.js` | Routing: admin pages redirect to the login page when not logged in, navbar links for visitors and admins |
+| File                                        | Description                                                                                              |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `frontend/src/setupTests.js`                | Global test setup, loaded before every test file                                                         |
+| `frontend/src/testUtils.js`                 | Helpers to mock the backend API (`mockFetch`) and read the data sent to it (`sentBodies`)                |
+| `frontend/src/pages/Menu.test.js`           | Cart and checkout flow: product list, category filters, cart quantities and total, order submission      |
+| `frontend/src/pages/Orders.test.js`         | Order management: order list, status and payment updates, order detail popup                             |
+| `frontend/src/pages/Admin.test.js`          | Product administration: product table, add, edit and delete products, save errors                        |
+| `frontend/src/pages/AdminDashboard.test.js` | Dashboard: login redirect, revenue and order stats, last 7 days and top 5 products, 30-second refresh    |
+| `frontend/src/App.test.js`                  | Routing: admin pages redirect to the login page when not logged in, navbar links for visitors and admins |
 
 > **Note:** `react-router-dom` v7 cannot be loaded by the Jest version bundled with Create React App, so `frontend/package.json` contains a `jest.moduleNameMapper` entry that points Jest to the right files. Do not remove it.
 
@@ -169,18 +215,24 @@ npm test -- --watchAll=false src/pages/Menu.test.js
 Test files are placed next to the component they test and end with `.test.js`. A typical test follows three steps:
 
 ```js
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { mockFetch } from '../testUtils';
-import Menu from './Menu';
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { mockFetch } from "../testUtils";
+import Menu from "./Menu";
 
-test('adds a product to the cart', async () => {
+test("adds a product to the cart", async () => {
   // 1. Arrange: mock the API and render the component
-  mockFetch({ '/products/available': [{ id: 1, name: 'Espresso', price: 15, category: 'COFFEE' }] });
+  mockFetch({
+    "/products/available": [
+      { id: 1, name: "Espresso", price: 15, category: "COFFEE" },
+    ],
+  });
   render(<Menu />);
 
   // 2. Act: interact like a user
-  userEvent.click(await screen.findByRole('button', { name: /Ajouter au panier/ }));
+  userEvent.click(
+    await screen.findByRole("button", { name: /Ajouter au panier/ }),
+  );
 
   // 3. Assert: check what the user sees
   expect(screen.getByText(/Panier/)).toBeInTheDocument();
@@ -193,7 +245,6 @@ test('adds a product to the cart', async () => {
 - `'POST /orders': { id: 1 }` returns this JSON for a `POST` request.
 - `{ ok: false }` simulates a server error.
 
-
 ### Backend Tests
 
 The backend is tested with **JUnit 5**, **Spring Boot Test**, **MockMvc**, and an **H2 in-memory database**.
@@ -201,6 +252,10 @@ The backend is tested with **JUnit 5**, **Spring Boot Test**, **MockMvc**, and a
 The tests run against the actual Spring Boot application context. MockMvc sends HTTP requests to the REST controllers without starting a real HTTP server, while H2 provides an isolated test database instead of using the production MySQL database.
 
 This allows us to test the backend endpoints, database operations, business logic, and HTTP responses without requiring the frontend or a running MySQL instance.
+
+The backend integration tests also include Spring Security configuration. Protected endpoints are tested with authenticated users and their corresponding roles using Spring Security Test and `@WithMockUser`.
+
+The tests verify that access to protected resources respects the application's authorization rules.
 
 Run all backend tests once:
 
@@ -228,15 +283,16 @@ Run a specific test method:
 ./mvnw -Dtest=OrderControllerTest#shouldCreateOrderAndCalculateTotal test
 ```
 
-**### Test Files**
+### Test Files
 
-| File | Description |
-|------|-------------|
-| `backend/src/test/resources/application-test.properties` | Test configuration: uses an H2 in-memory database and creates/drops the database schema for each test context. |
-| `backend/src/test/java/com/example/coffee/controller/ProductControllerTest.java` | Product management: retrieve all products, filter available products and categories, retrieve by ID, create, update and delete products. |
-| `backend/src/test/java/com/example/coffee/controller/OrderControllerTest.java` | Order management: create orders, calculate totals, retrieve orders, filter by status, update status and payment, delete orders, and test overview and product statistics. |
+| File                                                                             | Description                                                                                                                                                               |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backend/src/test/resources/application-test.properties`                         | Test configuration: uses an H2 in-memory database and creates/drops the database schema for each test context.                                                            |
+| `backend/src/test/java/com/example/coffee/controller/ProductControllerTest.java` | Product management: retrieve all products, filter available products and categories, retrieve by ID, create, update and delete products.                                  |
+| `backend/src/test/java/com/example/coffee/controller/OrderControllerTest.java`   | Order management: create orders, calculate totals, retrieve orders, filter by status, update status and payment, delete orders, and test overview and product statistics. |
+| `backend/src/test/java/com/example/coffee/controller/UserControllerTest.java`    | User management: user-related API operations and access control for protected endpoints.                                                                                  |
 
-**### Writing a New Test**
+### Writing a New Test
 
 Backend test files are placed in `backend/src/test/java`, following the same package structure as the application. Test classes end with `Test.java`.
 
@@ -270,7 +326,7 @@ class ProductControllerTest {
 
 `MockMvc` sends requests directly to the application without requiring a running frontend or external HTTP server.
 
-**### Test Database**
+### Test Database
 
 The backend tests use **H2**, an in-memory relational database.
 
