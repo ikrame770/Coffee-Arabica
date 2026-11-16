@@ -3,6 +3,7 @@ package com.example.coffee.controller;
 
 import com.example.coffee.model.Product;
 import com.example.coffee.repository.ProductRepository;
+import com.example.coffee.repository.OrderRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,11 +13,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import com.example.coffee.repository.OrderRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -24,6 +28,8 @@ import com.example.coffee.repository.OrderRepository;
 class ProductControllerTest {
 
     @Autowired
+    private WebApplicationContext context;
+
     private MockMvc mockMvc;
 
     @Autowired
@@ -34,6 +40,12 @@ class ProductControllerTest {
 
     @BeforeEach
     void setUp() {
+
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(SecurityMockMvcConfigurers.springSecurity())
+                .build();
+
         order_repo.deleteAll();
         repo.deleteAll();
     }
@@ -54,6 +66,7 @@ class ProductControllerTest {
 
     @Test
     void shouldReturnAllProducts() throws Exception {
+
         createProduct("Espresso", "Coffee", 15.0, true);
         createProduct("Tea", "Tea", 10.0, true);
 
@@ -64,6 +77,7 @@ class ProductControllerTest {
 
     @Test
     void shouldReturnOnlyAvailableProducts() throws Exception {
+
         createProduct("Espresso", "Coffee", 15.0, true);
         createProduct("Unavailable Coffee", "Coffee", 20.0, false);
 
@@ -75,6 +89,7 @@ class ProductControllerTest {
 
     @Test
     void shouldFilterProductsByCategory() throws Exception {
+
         createProduct("Espresso", "Coffee", 15.0, true);
         createProduct("Tea", "Tea", 10.0, true);
 
@@ -86,6 +101,7 @@ class ProductControllerTest {
 
     @Test
     void shouldReturnProductById() throws Exception {
+
         Product product = createProduct("Espresso", "Coffee", 15.0, true);
 
         mockMvc.perform(get("/api/products/" + product.getId()))
@@ -95,7 +111,9 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "BARISTA")
     void shouldCreateProduct() throws Exception {
+
         String productJson = """
                 {
                     "name": "Cappuccino",
@@ -108,8 +126,8 @@ class ProductControllerTest {
                 """;
 
         mockMvc.perform(post("/api/products")
-                        .contentType("application/json")
-                        .content(productJson))
+                .contentType("application/json")
+                .content(productJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Cappuccino"))
                 .andExpect(jsonPath("$.price").value(25.0));
@@ -118,7 +136,9 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "BARISTA")
     void shouldUpdateProduct() throws Exception {
+
         Product product = createProduct("Espresso", "Coffee", 15.0, true);
 
         String updatedJson = """
@@ -133,27 +153,27 @@ class ProductControllerTest {
                 """;
 
         mockMvc.perform(put("/api/products/" + product.getId())
-                        .contentType("application/json")
-                        .content(updatedJson))
+                .contentType("application/json")
+                .content(updatedJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Double Espresso"))
                 .andExpect(jsonPath("$.price").value(20.0));
 
         org.junit.jupiter.api.Assertions.assertEquals(
                 "Double Espresso",
-                repo.findById(product.getId()).orElseThrow().getName()
-        );
+                repo.findById(product.getId()).orElseThrow().getName());
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldDeleteProduct() throws Exception {
+
         Product product = createProduct("Espresso", "Coffee", 15.0, true);
 
         mockMvc.perform(delete("/api/products/" + product.getId()))
                 .andExpect(status().isOk());
 
         org.junit.jupiter.api.Assertions.assertFalse(
-                repo.existsById(product.getId())
-        );
+                repo.existsById(product.getId()));
     }
 }

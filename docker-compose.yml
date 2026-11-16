@@ -4,7 +4,7 @@ services:
     container_name: coffee-db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${DB_NAME:-coffee-db}
+      MYSQL_DATABASE: ${DB_NAME:-coffee_db}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Configure DB_ROOT_PASSWORD dans .env}
       MYSQL_USER: ${DB_USERNAME:-coffee_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD dans .env}
@@ -32,6 +32,9 @@ services:
       DB_URL: jdbc:mysql://db:3306/${DB_NAME:-coffee_db}?createDatabaseIfNotExist=true
       DB_USERNAME: ${DB_USERNAME:-coffee_user}
       DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD dans .env}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?Configure ADMIN_USERNAME dans .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Configure ADMIN_PASSWORD dans .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Configure ADMIN_EMAIL dans .env}
     ports:
       - "8081:8081"
     depends_on:
@@ -46,8 +49,6 @@ services:
       dockerfile: Dockerfile
       args:
         REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8081}
-        REACT_APP_ADMIN_USERNAME: ${REACT_APP_ADMIN_USERNAME}
-        REACT_APP_ADMIN_PASSWORD: ${REACT_APP_ADMIN_PASSWORD}
     container_name: coffee-frontend
     restart: unless-stopped
     ports:
