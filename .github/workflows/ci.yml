@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/CI
   pull_request:
     branches:
       - main
@@ -50,7 +51,7 @@ jobs:
       - name: install dependencies 
         run : npm ci 
       - name: test frontend
-        run :  npm test  
+        run :  npm test   -- --coverage --watchAll=false
       - name : build frontend
         run : npm run build  
 
