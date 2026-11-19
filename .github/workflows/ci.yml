@@ -87,5 +87,6 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true   # ignore les failles sans correctif disponible
           format: table          # lisible dans les logs
-          exit-code: '0'         # 0 = ne fait PAS échouer le job          
+          exit-code: '0'         # 0 = ne fait PAS échouer le job  
+          trivyignores: .trivyignore        
 
