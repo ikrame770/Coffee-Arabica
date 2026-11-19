@@ -23,8 +23,15 @@ function Menu() {
   }, []);
 
   useEffect(() => {
-    filterProducts();
+    if (selectedCategory === 'ALL') {
+      setFilteredProducts(products);
+    } else {
+      setFilteredProducts(
+        products.filter(p => p.category === selectedCategory)
+      );
+    }
   }, [selectedCategory, products]);
+
 
   const loadProducts = async () => {
     try {
@@ -41,20 +48,14 @@ function Menu() {
     }
   };
 
-  const filterProducts = () => {
-    if (selectedCategory === 'ALL') {
-      setFilteredProducts(products);
-    } else {
-      setFilteredProducts(products.filter(p => p.category === selectedCategory));
-    }
-  };
+
 
   const addToCart = (product) => {
     const exist = cart.find(item => item.product.id === product.id);
     if (exist) {
-      setCart(cart.map(item => 
-        item.product.id === product.id 
-          ? { ...item, quantity: item.quantity + 1 } 
+      setCart(cart.map(item =>
+        item.product.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
           : item
       ));
     } else {
@@ -79,12 +80,12 @@ function Menu() {
       alert('Veuillez entrer votre nom !');
       return;
     }
-    
+
     if (cart.length === 0) {
       alert('Votre panier est vide !');
       return;
     }
-    
+
     const order = {
       customerName: customerName.trim(),
       phone: phone.trim(),
@@ -102,7 +103,7 @@ function Menu() {
       });
 
       if (!res.ok) throw new Error('Erreur commande');
-      
+
       alert('✅ Commande créée avec succès !');
       setCart([]);
       setShowCart(false);
@@ -157,8 +158,8 @@ function Menu() {
         <div className="grid">
           {filteredProducts.map(product => (
             <div key={product.id} className="product-card">
-              <img 
-                src={product.image || 'https://via.placeholder.com/280x200?text=Produit'} 
+              <img
+                src={product.image || 'https://via.placeholder.com/280x200?text=Produit'}
                 alt={product.name}
                 className="product-image"
               />
@@ -192,7 +193,7 @@ function Menu() {
               <h2 className="modal-title">🛒 Votre Panier</h2>
               <button onClick={() => setShowCart(false)} className="modal-close">×</button>
             </div>
-            
+
             <div className="modal-body">
               {cart.map(item => (
                 <div key={item.product.id} className="cart-item">
@@ -210,7 +211,7 @@ function Menu() {
                     <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)}>
                       +
                     </button>
-                    <button 
+                    <button
                       onClick={() => updateQuantity(item.product.id, 0)}
                       className="btn-delete"
                     >
@@ -219,31 +220,31 @@ function Menu() {
                   </div>
                 </div>
               ))}
-              
+
               <div className="cart-total">
                 Total: {total.toFixed(2)} MAD
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">Votre nom *</label>
-                <input 
+                <input
                   className="form-input"
-                  value={customerName} 
+                  value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Entrez votre nom"
                 />
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">Téléphone</label>
-                <input 
+                <input
                   className="form-input"
-                  value={phone} 
+                  value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Votre numéro de téléphone"
                 />
               </div>
-              
+
               <button onClick={handleOrder} className="btn btn-success">
                 ✅ Confirmer la commande
               </button>
