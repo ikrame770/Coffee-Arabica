@@ -28,7 +28,7 @@ services:
     container_name: coffee-backend
     restart: unless-stopped
     environment:
-      SERVER_PORT: 8081
+      SERVER_PORT: ${SERVER_PORT:-8081}
       DB_URL: jdbc:mysql://db:3306/${DB_NAME:-coffee_db}?createDatabaseIfNotExist=true
       DB_USERNAME: ${DB_USERNAME:-coffee_user}
       DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD dans .env}
@@ -36,7 +36,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Configure ADMIN_PASSWORD dans .env}
       ADMIN_EMAIL: ${ADMIN_EMAIL:?Configure ADMIN_EMAIL dans .env}
     ports:
-      - "8081:8081"
+      - "${SERVER_PORT:-8081}:${SERVER_PORT:-8081}"
     depends_on:
       db:
         condition: service_healthy

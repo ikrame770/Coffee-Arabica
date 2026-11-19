@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Menu from './pages/Menu';
@@ -9,18 +9,13 @@ import Login from './pages/Login';
 import './App.css';
 import About from './pages/About';
 import AdminDashboard from "./pages/AdminDashboard";
+import Users from './pages/Users';
+import RoleRoute from './RoleRoute';
+import { getAuth } from './auth';
+
 function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const adminAuth = localStorage.getItem('adminAuth');
-    setIsAdmin(adminAuth === 'true');
-  }, []);
-
-  const ProtectedRoute = ({ children }) => {
-    const adminAuth = localStorage.getItem('adminAuth');
-    return adminAuth === 'true' ? children : <Navigate to="/login" />;
-  };
+  // Source unique : la session du nouveau système
+  const [isAdmin, setIsAdmin] = useState(() => !!getAuth());
 
   return (
     <BrowserRouter>
@@ -30,27 +25,18 @@ function App() {
         <Route path="/menu" element={<Menu />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login setIsAdmin={setIsAdmin} />} />
-        <Route 
-          path="/orders" 
-          element={
-            <ProtectedRoute>
-              <Orders />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/orders" element={
+          <RoleRoute roles={['ADMIN', 'BARISTA']}><Orders /></RoleRoute>
+        } />
+        <Route path="/admin" element={
+          <RoleRoute roles={['ADMIN', 'BARISTA']}><Admin /></RoleRoute>
+        } />
         <Route path="/admindashboard" element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute>
-              <Admin />
-            </ProtectedRoute>
-          } 
-        />
+          <RoleRoute roles={['ADMIN']}><AdminDashboard /></RoleRoute>
+        } />
+        <Route path="/admin/users" element={
+          <RoleRoute roles={['ADMIN']}><Users /></RoleRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );

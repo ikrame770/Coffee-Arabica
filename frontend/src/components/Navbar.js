@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getAuth, logout } from '../auth';
 
 function Navbar({ isAdmin, setIsAdmin }) {
   const navigate = useNavigate();
+  const auth = getAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
+    logout();                                // sessionStorage "auth"
     setIsAdmin(false);
     navigate('/');
   };
@@ -16,7 +19,7 @@ function Navbar({ isAdmin, setIsAdmin }) {
           <div className="logo-title">Arabica</div>
           <div className="logo-tagline">All you need is love and coffee</div>
         </Link>
-        
+
         <div className="navbar-menu">
           <Link to="/" className="nav-link"> Accueil</Link>
           <Link to="/menu" className="nav-link"> Menu</Link>
@@ -26,7 +29,12 @@ function Navbar({ isAdmin, setIsAdmin }) {
             <>
               <Link to="/orders" className="nav-link"> Commandes</Link>
               <Link to="/admin" className="nav-link"> Product</Link>
-              <Link to="/admindashboard" className="nav-link"> Dashboard</Link>
+              {auth?.role === 'ADMIN' && (
+                <>
+                  <Link to="/admindashboard" className="nav-link"> Dashboard</Link>
+                  <Link to="/admin/users" className="nav-link"> Utilisateurs</Link>
+                </>
+              )}
               <button onClick={handleLogout} className="nav-link logout-btn">
                 🚪 Déconnexion
               </button>

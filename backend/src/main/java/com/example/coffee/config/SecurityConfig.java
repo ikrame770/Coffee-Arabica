@@ -41,6 +41,10 @@ public class SecurityConfig {
                         // Autoriser les requêtes CORS preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        // AUTH : utilisateur connecté (ADMIN ou BARISTA)
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me")
+                        .hasAnyRole("ADMIN", "BARISTA")
+
                         // USER MANAGEMENT : ADMIN uniquement
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
 

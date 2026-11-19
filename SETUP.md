@@ -137,12 +137,19 @@ SERVER_PORT=8081
 DB_URL=jdbc:mysql://localhost:3306/coffee_db
 DB_USERNAME=your_mysql_username
 DB_PASSWORD=your_mysql_password
+
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your_admin_password
+ADMIN_EMAIL=admin@coffee.local
 ```
 
 Replace:
 
 - `your_mysql_username` with your MySQL username.
 - `your_mysql_password` with your MySQL password.
+- `your_admin_password` with the password of the initial administrator account (used to log in).
+
+The backend will not start if `ADMIN_USERNAME`, `ADMIN_PASSWORD` or `ADMIN_EMAIL` are missing.
 
 You can also change the server port if necessary, provided the frontend API URL is updated accordingly.
 
@@ -207,16 +214,10 @@ Open `frontend/.env` and configure:
 
 ```env
 REACT_APP_API_URL=http://localhost:8081
-
-REACT_APP_ADMIN_USERNAME=your_admin_username
-REACT_APP_ADMIN_PASSWORD=your_admin_password
 ```
-
-Choose your own administrator username and password.
 
 The API URL must point to the address where your backend is running.
 
-**Important:** React environment variables are included in the browser JavaScript bundle. The administrator credentials used by the current frontend login implementation are therefore not secret. This configuration is intended for local demonstration, not production security.
 
 ## 5.3 Install Frontend Dependencies
 
@@ -253,7 +254,7 @@ Once both applications are running:
 
 Open the frontend URL in your browser to use the application.
 
-Use the administrator credentials configured in `frontend/.env` to access the administration interface.
+Log in with the `ADMIN_USERNAME` and `ADMIN_PASSWORD` defined in the backend environment (`backend/.env`, or the root `.env` when using Docker).
 
 # 7. Running the Project Again
 
@@ -274,7 +275,18 @@ npm start
 
 4. Open `http://localhost:3000` in your browser.
 
-#
+
+# 7b. Run with Docker (alternative)
+
+Docker Desktop is required and must be running. This option starts MySQL, the backend and the frontend, without installing Java or MySQL locally.
+
+1. Copy `.env.example` (project root) to `.env` and set `DB_ROOT_PASSWORD`, `DB_PASSWORD` and `ADMIN_PASSWORD`.
+2. Run `docker compose up --build`.
+3. Open `http://localhost:3000` and log in with `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
+
+MySQL is exposed on port 3307 of your machine.
+
+
 
 # 8. Troubleshooting
 
@@ -291,6 +303,13 @@ npm start
 - Check `REACT_APP_API_URL` in `frontend/.env`.
 - Verify the backend CORS configuration.
 - Restart the React development server after changing `.env`.
+
+### Login fails with "Identifiants incorrects"
+
+- Make sure the backend is running.
+- Check that `ADMIN_USERNAME`, `ADMIN_PASSWORD` and `ADMIN_EMAIL` are defined in the backend environment (`backend/.env`, or the root `.env` when using Docker).
+- Log in with exactly those values. The administrator account is created at the first startup, so if you change these values later on an existing database, the old account keeps its original password.
+- Check that the backend is reachable at the URL set in `REACT_APP_API_URL`.
 
 ### npm is not recognized
 

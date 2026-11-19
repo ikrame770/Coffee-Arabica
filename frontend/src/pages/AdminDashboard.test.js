@@ -62,7 +62,6 @@ function renderDashboard() {
     <MemoryRouter initialEntries={['/admindashboard']}>
       <Routes>
         <Route path="/admindashboard" element={<AdminDashboard />} />
-        <Route path="/login" element={<p>Login page</p>} />
       </Routes>
     </MemoryRouter>
   );
@@ -74,22 +73,14 @@ function overviewLoads(fetchMock) {
 
 beforeEach(() => {
   localStorage.clear();
+  sessionStorage.clear();
 });
 
 afterEach(() => {
   jest.useRealTimers();
 });
 
-test('redirects to the login page when not logged in', async () => {
-  const fetchMock = mockStats();
-  renderDashboard();
-
-  expect(await screen.findByText('Login page')).toBeInTheDocument();
-  expect(fetchMock).not.toHaveBeenCalled();
-});
-
 test('shows the revenue and order counts', async () => {
-  localStorage.setItem('adminAuth', 'true');
   mockStats();
   renderDashboard();
 
@@ -105,7 +96,6 @@ test('shows the revenue and order counts', async () => {
 });
 
 test('keeps the last 7 days and the top 5 products', async () => {
-  localStorage.setItem('adminAuth', 'true');
   mockStats();
   renderDashboard();
 
@@ -119,7 +109,6 @@ test('keeps the last 7 days and the top 5 products', async () => {
 
 test('refreshes the stats every 30 seconds', async () => {
   jest.useFakeTimers();
-  localStorage.setItem('adminAuth', 'true');
   const fetchMock = mockStats();
   renderDashboard();
 

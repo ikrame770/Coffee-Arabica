@@ -30,6 +30,7 @@ const orders = [
 let alertSpy;
 
 beforeEach(() => {
+  sessionStorage.clear();
   alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
 });
 
@@ -125,4 +126,41 @@ describe('Orders – detail popup', () => {
 
     expect(document.querySelector('.modal')).not.toBeInTheDocument();
   });
+});
+
+describe('Orders – delete (ADMIN only)', () => {
+    const loginAs = (role) =>
+      sessionStorage.setItem('auth', JSON.stringify({ token: 'x', username: 'sara', role }));
+
+    test('an admin can delete an order after confirmation', async () => {
+      loginAs('ADMIN');
+      const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+      const fetchMock = await renderOrders({ 'DELETE /orders/1': {} });
+
+      userEvent.click(within(orderRow('Ikrame')).getByRole('button', { name: /Supprimer/ }));
+
+      expect(confirmSpy).toHaveBeenCalledWith('Supprimer cette commande ?');
+      await waitFor(() => expect(ordersLoads(fetchMock)).toBe(2));
+      const deletes = fetchMock.mock.calls.filter(
+        ([url, options = {}]) => url.endsWith('/api/orders/1') && options.method === 'DELETE'
+      );
+      expect(deletes).toHaveLength(1);
+    });
+
+    test('nothing is deleted when the confirmation is cancelled', async () => {
+      loginAs('ADMIN');
+      jest.spyOn(window, 'confirm').mockReturnValue(false);
+      const fetchMock = await renderOrders();
+
+      userEvent.click(within(orderRow('Ikrame')).getByRole('button', { name: /Supprimer/ }));
+
+      expect(fetchMock.mock.calls.some(([, o = {}]) => o.method === 'DELETE')).toBe(false);
+    });
+
+    test('a barista does not see the delete button', async () => {
+      loginAs('BARISTA');
+      await renderOrders();
+
+      expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
+    });
 });
