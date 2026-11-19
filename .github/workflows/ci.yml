@@ -32,6 +32,14 @@ jobs:
           cache: maven
       - name: build and test backend
         run: mvn -B verify
+      - name: upload backend reports
+        if: always()
+        uses: actions/upload-artifact@v4 
+        with:
+          name: backend-reports
+          path: |
+            backend/target/surefire-reports/
+            backend/target/site/jacoco/ 
 
   frontend:
     name: frontend CI
@@ -52,6 +60,14 @@ jobs:
         run : npm ci 
       - name: test frontend
         run :  npm test   -- --coverage --watchAll=false
+      
       - name : build frontend
-        run : npm run build  
+        run : npm run build 
+
+      - name: upload frontend reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-reports
+          path: frontend/coverage/    
 
