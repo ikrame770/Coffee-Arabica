@@ -69,5 +69,23 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-reports
-          path: frontend/coverage/    
+          path: frontend/coverage/  
+
+  security:
+    name: security scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: scan dependencies with Trivy
+        uses: aquasecurity/trivy-action@0.33.1   # voir la note ci-dessous
+        with:
+          scan-type: fs          # scanne les fichiers du repo
+          scan-ref: .            # tout le repo (backend + frontend)
+          scanners: vuln         # uniquement les vulnérabilités de dépendances
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true   # ignore les failles sans correctif disponible
+          format: table          # lisible dans les logs
+          exit-code: '0'         # 0 = ne fait PAS échouer le job          
 
