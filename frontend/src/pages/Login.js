@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../auth';
 
 function Login({ setIsAdmin }) {
   const [username, setUsername] = useState('');
@@ -7,18 +8,15 @@ function Login({ setIsAdmin }) {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    
-    const ADMIN_USERNAME = process.env.REACT_APP_ADMIN_USERNAME;
-    const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
-
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      localStorage.setItem('adminAuth', 'true');
-      setIsAdmin(true);
+    setError('');
+    try {
+      await login(username, password);
+      if (setIsAdmin) setIsAdmin(true);
       navigate('/admin');
-    } else {
-      setError('Identifiants incorrects !');
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -30,9 +28,9 @@ function Login({ setIsAdmin }) {
         <p className="login-subtitle">
           Connectez-vous pour accéder au panneau d'administration
         </p>
-        
+
         {error && (
-          <div className="alert alert-error">⚠️ {error}</div>
+          <div className="alert alert-error" role="alert">⚠️ {error}</div>
         )}
 
         <form onSubmit={handleLogin}>
@@ -64,8 +62,6 @@ function Login({ setIsAdmin }) {
             🔓 Se connecter
           </button>
         </form>
-
-        
       </div>
     </div>
   );

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { apiFetch } from '../auth';
 
 function AdminDashboard() {
-  const navigate = useNavigate();
   const [stats, setStats] = useState({});
   const [dailyData, setDailyData] = useState([]);
   const [productData, setProductData] = useState([]);
@@ -15,33 +14,16 @@ function AdminDashboard() {
   const COLORS = ['#8B4513', '#D2691E', '#DEB887', '#F4A460', '#CD853F'];
 
   useEffect(() => {
-    const isAuth = localStorage.getItem("adminAuth");
-    if (!isAuth) {
-      navigate("/login");
-      return;
-    }
     loadAllStats();
     const interval = setInterval(loadAllStats, 30000); // 30 secondes
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, []);
 
   const loadAllStats = async () => {
     try {
-      // Charger les statistiques générales
-      const overviewRes = await fetch("http://localhost:8081/api/orders/stats/overview");
-      const overview = await overviewRes.json();
-      setStats(overview);
-
-      // Charger les données journalières
-      const dailyRes = await fetch("http://localhost:8081/api/orders/stats/daily");
-      const daily = await dailyRes.json();
-      setDailyData(daily.slice(-7)); // 7 derniers jours
-
-      // Charger les produits les plus vendus
-      const productsRes = await fetch("http://localhost:8081/api/orders/stats/products");
-      const products = await productsRes.json();
-      setProductData(products.slice(0, 5)); // Top 5
-      
+      setStats(await apiFetch("/orders/stats/overview"));
+      setDailyData((await apiFetch("/orders/stats/daily")).slice(-7)); // 7 derniers jours
+      setProductData((await apiFetch("/orders/stats/products")).slice(0, 5)); // Top 5
       setLoading(false);
     } catch (error) {
       console.error("Erreur chargement stats:", error);
@@ -49,6 +31,7 @@ function AdminDashboard() {
     }
   };
 
+  // ... exportCSV, statusData et le JSX : inchangés
   const exportCSV = () => {
     const csv = "Statistiques Coffee Shop\n\n" +
       `Total Commandes,${stats.totalOrders || 0}\n` +

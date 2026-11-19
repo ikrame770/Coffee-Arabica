@@ -37,13 +37,13 @@ The application provides two main interfaces:
 - View registered users.
 - Create new user accounts.
 - Update existing user information.
-- Delete user accounts.
+- Activate or deactivate user accounts.
 
 ### 👥 User Management Features
 
 - Dedicated user management for administrators.
 - Retrieve all registered users.
-- Create, update and delete user accounts.
+- Create, update and activate or deactivate user accounts.
 - Support for ADMIN and BARISTA roles.
 - Role-based access control for user management operations.
 - Secure password storage using BCrypt password encoding.
@@ -73,6 +73,7 @@ The application provides two main interfaces:
 - HTML5
 - CSS3
 - Axios
+- Fetch API
 - React Hooks
 - React Router
 
@@ -95,10 +96,11 @@ The application provides two main interfaces:
 - Git
 - GitHub
 - Postman
+- Docker & Docker Compose
 
 ## 🏗️ Project Architecture
 
-The project is organized into two independent applications:
+The project is organized into two independent applications (plus a Docker Compose setup):
 
 ```text
 Coffee-Arabica/
@@ -115,12 +117,13 @@ Coffee-Arabica/
 │   ├── package.json
 │   ├── .env.example
 │   └── ...
-│
+├── docker-compose.yml
+├── .env.example
 ├── README.md
 └── SETUP.md
 ```
 
-**Frontend:** React.js provides the user interface and sends HTTP requests to the backend using Axios.
+**Frontend:** React.js provides the user interface and sends HTTP requests to the backend using Axios and the Fetch API.
 
 **Backend:** Spring Boot exposes REST APIs, processes application requests and communicates with the MySQL database through Spring Data JPA.
 
@@ -152,20 +155,34 @@ Passwords are encoded using BCrypt before being stored in the database.
 
 The administrator account is initialized using environment variables, avoiding hardcoded administrator credentials in the backend source code.
 
+### Frontend Authentication
+
+The login page sends the credentials to `GET /api/auth/me` (HTTP Basic). On success, the user's role (`ADMIN` or `BARISTA`) is stored in `sessionStorage` and is cleared when the tab is closed or the user logs out.
+
+- `frontend/src/auth.js`: login, logout, current session and authenticated API calls (`apiFetch`, `userApi`).
+- `frontend/src/RoleRoute.js`: protects routes by role (visitors are redirected to `/login`, unauthorized roles to `/admin`).
+- Navbar links and the order deletion button are displayed according to the role. This only affects the display: access control is enforced by Spring Security on the backend.
+
+
 ## ⚙️ Environment Configuration
 
 The application uses environment variables to make local configuration easier.
 
-- `backend/.env.example`: Backend and database configuration template.
-- `frontend/.env.example`: Frontend API URL and administrator login configuration template.
+- `.env.example` (project root): used by Docker Compose. Contains the database settings (`DB_*`), the initial administrator account (`ADMIN_*`) and the frontend API URL.
+- `backend/.env.example`: Backend and database configuration template (when running without Docker).
+- `frontend/.env.example`: Frontend API URL configuration template.
 
 Each developer must create their own `.env` files before running the application.
+
+Administrator credentials are no longer stored in the frontend: the login page authenticates against the backend (`GET /api/auth/me`), and the initial administrator account is created by the backend from `ADMIN_USERNAME`, `ADMIN_PASSWORD` and `ADMIN_EMAIL`.
 
 ## ▶️ Installation and Execution
 
 To install the required tools, configure the database and run the application locally, follow the instructions in:
 
 **[SETUP.md – Installation and Setup Guide](SETUP.md)**
+
+A Docker Compose setup is also available (see section 7b of SETUP.md).
 
 ## 🧪 Testing
 
@@ -203,12 +220,17 @@ npm test -- --watchAll=false src/pages/Menu.test.js
 | `frontend/src/setupTests.js`                | Global test setup, loaded before every test file                                                         |
 | `frontend/src/testUtils.js`                 | Helpers to mock the backend API (`mockFetch`) and read the data sent to it (`sentBodies`)                |
 | `frontend/src/pages/Menu.test.js`           | Cart and checkout flow: product list, category filters, cart quantities and total, order submission      |
-| `frontend/src/pages/Orders.test.js`         | Order management: order list, status and payment updates, order detail popup                             |
+| `frontend/src/pages/Orders.test.js`         | Order management: order list, status and payment updates, order detail popup, order deletion (ADMIN only)                         |
 | `frontend/src/pages/Admin.test.js`          | Product administration: product table, add, edit and delete products, save errors                        |
-| `frontend/src/pages/AdminDashboard.test.js` | Dashboard: login redirect, revenue and order stats, last 7 days and top 5 products, 30-second refresh    |
-| `frontend/src/App.test.js`                  | Routing: admin pages redirect to the login page when not logged in, navbar links for visitors and admins |
+| `frontend/src/pages/AdminDashboard.test.js` | Dashboard: revenue and order stats, last 7 days and top 5 products, 30-second refresh    |
+| `frontend/src/App.test.js`                  | Routing: protected pages redirect to the login page when not logged in, navbar links per role (visitor, barista, admin) |
+| `frontend/src/pages/Users.test.js`          | User management: user list, create, edit (password optional), activate/deactivate, own account protection, load errors |
+| `frontend/src/pages/Login.test.js`          | Login: successful login stores the role and redirects, wrong credentials show an error                    |
+| `frontend/src/RoleRoute.test.js`            | Role-based route guard: visitor redirected to login, barista redirected from admin-only pages, admin allowed |
 
 > **Note:** `react-router-dom` v7 cannot be loaded by the Jest version bundled with Create React App, so `frontend/package.json` contains a `jest.moduleNameMapper` entry that points Jest to the right files. Do not remove it.
+
+> **Note:** These are component tests: they render the real components and routing, but the backend is replaced by `mockFetch`. Full frontend/backend integration (real login, roles, CORS) must be verified manually with the application running.
 
 ### Writing a New Test
 
