@@ -79,7 +79,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: scan dependencies with Trivy
-        uses: aquasecurity/trivy-action@0.35.0   # voir la note ci-dessous
+        uses: aquasecurity/trivy-action@0.35.0   
         with:
           scan-type: fs          # scanne les fichiers du repo
           scan-ref: .            # tout le repo (backend + frontend)
@@ -87,6 +87,6 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true   # ignore les failles sans correctif disponible
           format: table          # lisible dans les logs
-          exit-code: '0'         # 0 = ne fait PAS échouer le job  
+          exit-code: '1'         # 0 = ne fait PAS échouer le job  
           trivyignores: .trivyignore        
 
