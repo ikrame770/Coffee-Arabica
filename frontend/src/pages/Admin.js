@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { apiFetch } from '../auth';
 
 function Admin() {
   const [products, setProducts] = useState([]);
@@ -15,10 +16,7 @@ function Admin() {
 
   const loadProducts = async () => {
     try {
-      const res = await fetch('http://localhost:8081/api/products');
-      if (!res.ok) throw new Error('Erreur');
-      const data = await res.json();
-      setProducts(data);
+      setProducts(await apiFetch('/products'));
     } catch (error) {
       console.error('Erreur:', error);
     } finally {
@@ -28,21 +26,12 @@ function Admin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      const url = editing 
-        ? `http://localhost:8081/api/products/${editing.id}`
-        : 'http://localhost:8081/api/products';
-      
-      const method = editing ? 'PUT' : 'POST';
-      
-      const res = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
+      await apiFetch(editing ? `/products/${editing.id}` : '/products', {
+        method: editing ? 'PUT' : 'POST',
         body: JSON.stringify(form)
       });
-
-      if (!res.ok) throw new Error('Erreur');
 
       setShowForm(false);
       setEditing(null);
@@ -63,9 +52,7 @@ function Admin() {
   const handleDelete = async (id) => {
     if (window.confirm('Supprimer ce produit ?')) {
       try {
-        await fetch(`http://localhost:8081/api/products/${id}`, {
-          method: 'DELETE'
-        });
+        await apiFetch(`/products/${id}`, { method: 'DELETE' });
         loadProducts();
       } catch (error) {
         console.error('Erreur:', error);
@@ -123,14 +110,14 @@ function Admin() {
                   <td>{product.category}</td>
                   <td>{product.available ? '✅' : '❌'}</td>
                   <td>
-                    <button 
-                      onClick={() => handleEdit(product)} 
+                    <button
+                      onClick={() => handleEdit(product)}
                       className="btn btn-sm btn-secondary"
                     >
                       ✏️ Modifier
                     </button>
                     {' '}
-                    <button 
+                    <button
                       onClick={() => handleDelete(product.id)}
                       className="btn btn-sm btn-danger"
                     >
@@ -153,14 +140,14 @@ function Admin() {
               </h2>
               <button onClick={closeForm} className="modal-close">×</button>
             </div>
-            
+
             <div className="modal-body">
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
                   <label className="form-label">Nom *</label>
-                  <input 
+                  <input
                     className="form-input"
-                    value={form.name} 
+                    value={form.name}
                     onChange={(e) => setForm({...form, name: e.target.value})}
                     required
                   />
@@ -168,20 +155,20 @@ function Admin() {
 
                 <div className="form-group">
                   <label className="form-label">Description</label>
-                  <textarea 
+                  <textarea
                     className="form-textarea"
-                    value={form.description} 
+                    value={form.description}
                     onChange={(e) => setForm({...form, description: e.target.value})}
                   />
                 </div>
 
                 <div className="form-group">
                   <label className="form-label">Prix (MAD) *</label>
-                  <input 
+                  <input
                     type="number"
                     step="0.01"
                     className="form-input"
-                    value={form.price} 
+                    value={form.price}
                     onChange={(e) => setForm({...form, price: e.target.value})}
                     required
                   />
@@ -189,9 +176,9 @@ function Admin() {
 
                 <div className="form-group">
                   <label className="form-label">Catégorie *</label>
-                  <select 
+                  <select
                     className="form-select"
-                    value={form.category} 
+                    value={form.category}
                     onChange={(e) => setForm({...form, category: e.target.value})}
                   >
                     <option value="COFFEE">☕ Café</option>
@@ -203,9 +190,9 @@ function Admin() {
 
                 <div className="form-group">
                   <label className="form-label">Image URL</label>
-                  <input 
+                  <input
                     className="form-input"
-                    value={form.image} 
+                    value={form.image}
                     onChange={(e) => setForm({...form, image: e.target.value})}
                     placeholder="https://example.com/image.jpg"
                   />

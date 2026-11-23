@@ -1,40 +1,58 @@
 import React, { useEffect, useState } from 'react';
+import { apiFetch, getAuth } from '../auth';
 
 function Orders() {
 
   const [orders, setOrders] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [error, setError] = useState('');
+  const isAdmin = getAuth()?.role === 'ADMIN';
 
   useEffect(() => {
     loadOrders();
   }, []);
 
   const loadOrders = async () => {
-    const res = await fetch("http://localhost:8081/api/orders");
-    setOrders(await res.json());
+    try {
+      setOrders(await apiFetch('/orders'));
+      setError('');
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   const changeStatus = async (id, status) => {
-    await fetch(`http://localhost:8081/api/orders/${id}/status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(status)
-    });
-
-    loadOrders();
+    try {
+      await apiFetch(`/orders/${id}/status`, {
+        method: "PUT",
+        body: JSON.stringify(status)
+      });
+      loadOrders();
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   const changePayment = async (id, payment) => {
-    await fetch(`http://localhost:8081/api/orders/${id}/payment`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        payment: payment
-      })
-    });
-
-    loadOrders();
-    alert("✅ Paiement mis à jour");
+    try {
+      await apiFetch(`/orders/${id}/payment`, {
+        method: "PUT",
+        body: JSON.stringify({ payment: payment })
+      });
+      loadOrders();
+      alert("✅ Paiement mis à jour");
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+  const deleteOrder = async (id) => {
+    if (!window.confirm('Supprimer cette commande ?')) return;
+    try {
+      await apiFetch(`/orders/${id}`, { method: 'DELETE' });
+      loadOrders();
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   return (
@@ -42,6 +60,7 @@ function Orders() {
 
       <h1 className="page-title">🛍️ Commandes</h1>
 
+      {error && <div className="alert alert-error" role="alert">⚠️ {error}</div>}
       <table className="table-modern">
         <thead>
           <tr>
@@ -92,6 +111,17 @@ function Orders() {
                 >
                   🔍 Détail
                 </button>
+                {isAdmin && (
+                  <>
+                    {' '}
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => deleteOrder(o.id)}
+                    >
+                      🗑️ Supprimer
+                    </button>
+                  </>
+                )}
               </td>
 
             </tr>
