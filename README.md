@@ -126,6 +126,8 @@ Coffee-Arabica/
 
 **Database:** MySQL stores user, product and order information.
 
+**Cloud deployment:** the Azure infrastructure is defined with Terraform in `infra/terraform/`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the diagram and services used, and [docs/AZURE_ACCOUNT_SETUP.md](docs/AZURE_ACCOUNT_SETUP.md) for the steps required before the first `terraform apply`.
+
 ## 🔒 Security and Authorization
 
 The backend uses Spring Security to protect REST API endpoints and control access according to user roles.
