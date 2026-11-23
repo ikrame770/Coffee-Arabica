@@ -11,7 +11,6 @@ function AdminDashboard() {
   const [productData, setProductData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const COLORS = ['#8B4513', '#D2691E', '#DEB887', '#F4A460', '#CD853F'];
 
   useEffect(() => {
     loadAllStats();
