@@ -23,19 +23,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.1.0] - 2026-11-02
 
+## [1.1.0] - 2026-11-02
+
 ### Added
 
-- Ajout des tests d'intégration pour ProductController.
-- Ajout des tests d'intégration pour OrderController.
-- Ajout de la configuration H2 pour les tests.
+- Add integration tests for `ProductController`.
+- Add integration tests for `OrderController`.
+- Add H2 database configuration for testing.
 
 ### Changed
 
-- Amélioration de la configuration des tests backend.
+- Improve backend test configuration.
 
 ### Fixed
 
-- Correction de problèmes liés à la configuration de l'environnement de test.
+- Fix issues related to the test environment configuration.
 
 ## 2026-11-01
 
@@ -82,3 +84,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Backend integration tests updated to initialize MockMvc with Spring Security support.
 - Docker Compose configuration updated to provide database credentials and administrator initialization settings to the backend container.
 - MySQL and backend database configuration aligned to use the same database name.
+
+
+## 2026-11-24
+
+### Added
+
+- GitHub Actions CI/CD workflow to automate backend and frontend validation.
+- Automated backend testing using Maven and Java 21.
+- Backend code coverage reporting using JaCoCo.
+- Automated frontend testing with coverage enabled using React Scripts.
+- Frontend production build verification using Node.js 22.
+- Test and coverage report uploads as GitHub Actions artifacts.
+- Dependency vulnerability scanning using Trivy, focusing on HIGH and CRITICAL severity levels.
+- Docker image build and publishing automation through GitHub Actions.
+- Separate Docker images for the Spring Boot backend and React frontend.
+- Automatic publishing of Docker images to Docker Hub after successful CI validation.
+- Docker image versioning using `latest` and commit-specific SHA tags.
+- Secure Docker Hub authentication using GitHub repository secrets.
+
+### Changed
+
+- Automated the project's validation process through independent backend, frontend, and security jobs.
+- Integrated Docker image publishing into the CI/CD workflow, restricted to successful pushes to the `main` branch.
