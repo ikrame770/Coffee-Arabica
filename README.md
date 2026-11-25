@@ -361,3 +361,60 @@ The test configuration is defined in:
 Each test prepares its required data and cleans up existing orders before products to respect foreign-key constraints.
 
 **Note:** H2 is not identical to MySQL. Tests involving database-specific SQL functions, such as the daily and monthly sales queries using `DATE()`, are not currently included in the test suite. These features remain in the application source code but require a MySQL-compatible test environment to be tested reliably.
+
+
+## CI/CD Pipeline
+
+The Coffee-Arabica project uses **GitHub Actions** to automate continuous integration, security scanning, Docker image building, and publishing.
+
+### Pipeline Overview
+
+The CI/CD pipeline consists of four main jobs:
+
+#### 1. Backend CI
+- Set up Java 21 using Eclipse Temurin.
+- Configure Maven dependency caching.
+- Build the Spring Boot application and execute automated tests using `mvn verify`.
+- Generate test reports and code coverage reports using JaCoCo.
+- Upload test and coverage reports as GitHub Actions artifacts.
+
+#### 2. Frontend CI
+- Set up Node.js 22.
+- Install dependencies using `npm ci`.
+- Run automated frontend tests with coverage enabled.
+- Build the React application using `npm run build`.
+- Upload frontend coverage reports as GitHub Actions artifacts.
+
+#### 3. Security Scanning with Trivy
+- Scan project dependencies for known vulnerabilities using Trivy.
+- Analyze both backend and frontend dependencies.
+- Focus on HIGH and CRITICAL severity vulnerabilities.
+- Ignore vulnerabilities for which no fix is currently available.
+- Fail the security job when vulnerabilities matching the configured criteria are detected.
+
+#### 4. Docker Build and Publish
+After the successful completion of the backend, frontend, and security jobs, GitHub Actions automatically builds and publishes the Docker images when changes are pushed to the `main` branch.
+
+The publishing process includes:
+- Building the backend Docker image using its Dockerfile.
+- Building the frontend Docker image using its Dockerfile.
+- Authenticating with Docker Hub through GitHub Secrets.
+- Publishing both images to Docker Hub.
+- Creating two tags for each image:
+  - `latest`: identifies the latest published image.
+  - `sha-<commit-hash>`: identifies the image associated with a specific Git commit.
+
+### Docker Hub Images
+
+The project provides two independent Docker images:
+
+- **Backend:** [halimaah/coffee-arabica-backend](https://hub.docker.com/r/halimaah/coffee-arabica-backend)
+- **Frontend:** [halimaah/coffee-arabica-frontend](https://hub.docker.com/r/halimaah/coffee-arabica-frontend)
+
+### Workflow Triggers
+
+The GitHub Actions workflow is triggered by:
+- Push events on the `main` and `feature/CI` branches.
+- Pull requests targeting the `main` branch.
+
+**Note:** Docker image publishing is restricted to push events on the `main` branch and runs only when all three CI jobs succeed.
